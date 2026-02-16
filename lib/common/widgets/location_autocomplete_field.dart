@@ -16,6 +16,7 @@ class LocationAutocompleteField extends StatefulWidget {
     this.stopIndex,
     this.labelText = 'Location',
     this.focusNode,
+    this.validator,
   });
 
   final TextEditingController controller;
@@ -23,6 +24,7 @@ class LocationAutocompleteField extends StatefulWidget {
   final int? stopIndex;
   final String labelText;
   final FocusNode? focusNode;
+  final String? Function(String?)? validator;
 
   @override
   State<LocationAutocompleteField> createState() =>
@@ -78,7 +80,10 @@ class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
       Future.delayed(const Duration(milliseconds: 200), () {
         if (!mounted) return;
         context.read<LocationBloc>().add(
-          LocationSuggestionsCleared(widget.fieldType, stopIndex: widget.stopIndex),
+          LocationSuggestionsCleared(
+            widget.fieldType,
+            stopIndex: widget.stopIndex,
+          ),
         );
       });
     }
@@ -121,12 +126,15 @@ class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
         stopIndex: widget.stopIndex,
       ),
     );
-    if (widget.fieldType == LocationFieldType.stop && widget.stopIndex != null) {
-      bloc.add(LocationSearchRequested(
-        input: '',
-        fieldType: LocationFieldType.stop,
-        stopIndex: widget.stopIndex,
-      ));
+    if (widget.fieldType == LocationFieldType.stop &&
+        widget.stopIndex != null) {
+      bloc.add(
+        LocationSearchRequested(
+          input: '',
+          fieldType: LocationFieldType.stop,
+          stopIndex: widget.stopIndex,
+        ),
+      );
     }
     _removeOverlay();
     Future.microtask(() => _isSelectingPrediction = false);
@@ -182,103 +190,129 @@ class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
           final theme = Theme.of(context);
           final isSearching = _isSearching(state);
 
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(
-                height: 56,
-                child: TextField(
-                  controller: widget.controller,
-                  focusNode: _focusNode,
-                  onTap: () {
-                    if (widget.controller.text.isNotEmpty) {
-                      context.read<LocationBloc>().add(
-                        LocationSearchRequested(
-                          input: widget.controller.text,
-                          fieldType: widget.fieldType,
-                          stopIndex: widget.stopIndex,
-                        ),
-                      );
-                    }
-                  },
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: CustomAppColors.formTextPrimary,
-                  ),
-                  decoration: InputDecoration(
-                    hintText: 'Select location',
-                    labelText: widget.labelText,
-                    labelStyle: theme.textTheme.bodyMedium?.copyWith(
-                      color: CustomAppColors.formTextHint,
-                    ),
-                    floatingLabelStyle: theme.textTheme.bodySmall?.copyWith(
-                      color: CustomAppColors.formTextHint,
-                      fontSize: 12,
-                    ),
-                    floatingLabelBehavior: FloatingLabelBehavior.auto,
-                    prefixIconConstraints: const BoxConstraints(
-                      minWidth: 40,
-                      minHeight: 24,
-                    ),
-                    prefixIcon: Padding(
-                      padding: const EdgeInsets.only(left: AppSpacing.md),
-                      child: Icon(
-                        Icons.location_on,
-                        color: CustomAppColors.toggleSelectedGold,
-                        size: 20,
-                      ),
-                    ),
-                    suffixIcon: SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: isSearching
-                          ? Center(
-                              child: SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: CustomAppColors.formTextHint,
-                                ),
-                              ),
-                            )
-                          : Icon(
-                              Icons.arrow_drop_down,
-                              color: CustomAppColors.formTextHint,
-                              size: 24,
+          return FormField<String>(
+            initialValue: widget.controller.text,
+            validator: widget.validator,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            builder: (FormFieldState<String> field) {
+              final showError = field.hasError;
+              final errorMessage = field.errorText;
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    height: 56,
+                    child: TextField(
+                      controller: widget.controller,
+                      focusNode: _focusNode,
+                      onChanged: (value) => field.didChange(value),
+                      onTap: () {
+                        if (widget.controller.text.isNotEmpty) {
+                          context.read<LocationBloc>().add(
+                            LocationSearchRequested(
+                              input: widget.controller.text,
+                              fieldType: widget.fieldType,
+                              stopIndex: widget.stopIndex,
                             ),
-                    ),
-                    filled: true,
-                    fillColor: CustomAppColors.white,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.md,
-                      vertical: AppSpacing.md,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(
-                        color: CustomAppColors.formBorder,
-                        width: 1,
+                          );
+                        }
+                      },
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: CustomAppColors.formTextPrimary,
                       ),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(
-                        color: CustomAppColors.formBorder,
-                        width: 1,
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(
-                        color: CustomAppColors.formBorder,
-                        width: 1,
+                      decoration: InputDecoration(
+                        hintText: 'Select location',
+                        labelText: widget.labelText,
+                        labelStyle: theme.textTheme.bodyMedium?.copyWith(
+                          color: CustomAppColors.formTextHint,
+                        ),
+                        floatingLabelStyle: theme.textTheme.bodySmall?.copyWith(
+                          color: CustomAppColors.formTextHint,
+                          fontSize: 12,
+                        ),
+                        floatingLabelBehavior: FloatingLabelBehavior.auto,
+                        prefixIconConstraints: const BoxConstraints(
+                          minWidth: 40,
+                          minHeight: 24,
+                        ),
+                        prefixIcon: Padding(
+                          padding: const EdgeInsets.only(left: AppSpacing.md),
+                          child: Icon(
+                            Icons.location_on,
+                            color: CustomAppColors.toggleSelectedGold,
+                            size: 20,
+                          ),
+                        ),
+                        suffixIcon: SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: isSearching
+                              ? Center(
+                                  child: SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: CustomAppColors.formTextHint,
+                                    ),
+                                  ),
+                                )
+                              : Icon(
+                                  Icons.arrow_drop_down,
+                                  color: CustomAppColors.formTextHint,
+                                  size: 24,
+                                ),
+                        ),
+                        filled: true,
+                        fillColor: CustomAppColors.white,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.md,
+                          vertical: AppSpacing.md,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(
+                            color: CustomAppColors.formBorder,
+                            width: 1,
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(
+                            color: showError
+                                ? CustomAppColors.error
+                                : CustomAppColors.formBorder,
+                            width: 1,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(
+                            color: showError
+                                ? CustomAppColors.error
+                                : CustomAppColors.formBorder,
+                            width: 1,
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
-            ],
+                  if (showError &&
+                      errorMessage != null &&
+                      errorMessage.isNotEmpty) ...[
+                    const VerticalSpace(AppSpacing.sm),
+                    Text(
+                      errorMessage,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: CustomAppColors.error,
+                      ),
+                    ),
+                  ],
+                ],
+              );
+            },
           );
         },
       ),

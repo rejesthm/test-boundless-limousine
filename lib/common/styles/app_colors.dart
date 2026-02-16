@@ -7,9 +7,9 @@ extension BuildContextColorExtension on BuildContext {
 class CustomAppColors {
   const CustomAppColors._();
 
-  static const primary = Color(0xFFC4A05B);
+  static const primary = Color(0xFFC9A84E);
 
-  static const primaryVariant = Color(0xFFB8860B);
+  static const primaryVariant = Color(0xFFB8953F);
 
   static const secondary = Color(0xFF4A5B73);
 
@@ -31,7 +31,7 @@ class CustomAppColors {
 
   static const toggleSelectedBg = Color(0xFFFFF3D6);
 
-  static const toggleSelectedGold = Color(0xFFD4A017);
+  static const toggleSelectedGold = Color(0xFFB8953F);
 
   static const formBackground = Color(0xFFF8F9FB);
 

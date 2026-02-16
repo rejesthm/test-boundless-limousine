@@ -116,4 +116,32 @@ class ValidatorUtil {
     }
     return null;
   }
+
+  String? validateDate(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Pickup date is required';
+    }
+    return null;
+  }
+
+  String? validateTime(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Pickup time is required';
+    }
+    return null;
+  }
+
+  String? validatePickupLocation(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Pickup location is required';
+    }
+    return null;
+  }
+
+  String? validateDropOffLocation(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Drop off location is required';
+    }
+    return null;
+  }
 }

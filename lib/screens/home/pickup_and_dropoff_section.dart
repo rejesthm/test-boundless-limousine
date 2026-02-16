@@ -6,6 +6,7 @@ import 'package:test_repo_example/common/widgets/app_segmented_control.dart';
 import 'package:test_repo_example/common/widgets/section_title.dart';
 import 'package:test_repo_example/blocs/location_bloc/location_bloc.dart';
 import 'package:test_repo_example/common/widgets/location_autocomplete_field.dart';
+import 'package:test_repo_example/common/utils/validator_utils.dart';
 
 class PickupAndDropoffWidget extends StatefulWidget {
   const PickupAndDropoffWidget({
@@ -39,13 +40,32 @@ class PickupAndDropoffWidget extends StatefulWidget {
 
 class _PickupAndDropoffWidgetState extends State<PickupAndDropoffWidget> {
   final _stopControllers = <TextEditingController>[];
+  final _dateFormKey = GlobalKey<FormFieldState<String>>();
+  final _timeFormKey = GlobalKey<FormFieldState<String>>();
+
+  @override
+  void initState() {
+    super.initState();
+    widget.dateController.addListener(_onDateChanged);
+    widget.timeController.addListener(_onTimeChanged);
+  }
 
   @override
   void dispose() {
+    widget.dateController.removeListener(_onDateChanged);
+    widget.timeController.removeListener(_onTimeChanged);
     for (final c in _stopControllers) {
       c.dispose();
     }
     super.dispose();
+  }
+
+  void _onDateChanged() {
+    _dateFormKey.currentState?.didChange(widget.dateController.text);
+  }
+
+  void _onTimeChanged() {
+    _timeFormKey.currentState?.didChange(widget.timeController.text);
   }
 
   void _addStop() {
@@ -84,6 +104,7 @@ class _PickupAndDropoffWidgetState extends State<PickupAndDropoffWidget> {
         const SectionTitle('Pickup'),
         const VerticalSpace(AppSpacing.lg),
         Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(child: _buildDateField(context, theme)),
             const HorizontalSpace(AppSpacing.lg),
@@ -102,6 +123,7 @@ class _PickupAndDropoffWidgetState extends State<PickupAndDropoffWidget> {
           controller: widget.pickupLocationController,
           fieldType: LocationFieldType.pickup,
           labelText: 'Location',
+          validator: ValidatorUtil.instance.validatePickupLocation,
         ),
         ...List.generate(_stopControllers.length, (i) {
           return Padding(
@@ -160,102 +182,162 @@ class _PickupAndDropoffWidgetState extends State<PickupAndDropoffWidget> {
   }
 
   Widget _buildDateField(BuildContext context, ThemeData theme) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: widget.onDateTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Container(
-          height: 56,
-          decoration: BoxDecoration(
-            color: CustomAppColors.white,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: CustomAppColors.formBorder, width: 1),
-          ),
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md,
-            vertical: AppSpacing.sm,
-          ),
-          child: Row(
-            children: [
-              Icon(
-                Icons.calendar_today_outlined,
-                color: CustomAppColors.toggleSelectedGold,
-                size: 22,
-              ),
-              const HorizontalSpace(AppSpacing.md),
-              Expanded(
-                child: ValueListenableBuilder<TextEditingValue>(
-                  valueListenable: widget.dateController,
-                  builder: (_, value, __) => Text(
-                    value.text.isEmpty ? 'Select date' : value.text,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: value.text.isEmpty
-                          ? CustomAppColors.formTextHint
-                          : CustomAppColors.formTextPrimary,
+    return FormField<String>(
+      key: _dateFormKey,
+      initialValue: widget.dateController.text,
+      validator: ValidatorUtil.instance.validateDate,
+      builder: (formFieldState) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: widget.onDateTap,
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: CustomAppColors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: formFieldState.hasError
+                          ? Colors.red
+                          : CustomAppColors.formBorder,
+                      width: 1,
                     ),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.sm,
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.calendar_today_outlined,
+                        color: CustomAppColors.toggleSelectedGold,
+                        size: 22,
+                      ),
+                      const HorizontalSpace(AppSpacing.md),
+                      Expanded(
+                        child: ValueListenableBuilder<TextEditingValue>(
+                          valueListenable: widget.dateController,
+                          builder: (_, value, __) {
+                            return Text(
+                              value.text.isEmpty ? 'Select date' : value.text,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: value.text.isEmpty
+                                    ? CustomAppColors.formTextHint
+                                    : CustomAppColors.formTextPrimary,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      Icon(
+                        Icons.chevron_right,
+                        color: CustomAppColors.formTextHint,
+                        size: 22,
+                      ),
+                    ],
                   ),
                 ),
               ),
-              Icon(
-                Icons.chevron_right,
-                color: CustomAppColors.formTextHint,
-                size: 22,
+            ),
+            if (formFieldState.hasError)
+              Padding(
+                padding: const EdgeInsets.only(left: 12, top: 6),
+                child: Text(
+                  formFieldState.errorText ?? '',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: Colors.red,
+                    fontSize: 12,
+                  ),
+                ),
               ),
-            ],
-          ),
-        ),
-      ),
+          ],
+        );
+      },
     );
   }
 
   Widget _buildTimeField(BuildContext context, ThemeData theme) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: widget.onTimeTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Container(
-          height: 56,
-          decoration: BoxDecoration(
-            color: CustomAppColors.white,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: CustomAppColors.formBorder, width: 1),
-          ),
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md,
-            vertical: AppSpacing.sm,
-          ),
-          child: Row(
-            children: [
-              Icon(
-                Icons.schedule_outlined,
-                color: CustomAppColors.toggleSelectedGold,
-                size: 22,
-              ),
-              const HorizontalSpace(AppSpacing.md),
-              Expanded(
-                child: ValueListenableBuilder<TextEditingValue>(
-                  valueListenable: widget.timeController,
-                  builder: (_, value, __) => Text(
-                    value.text.isEmpty ? 'Select time' : value.text,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: value.text.isEmpty
-                          ? CustomAppColors.formTextHint
-                          : CustomAppColors.formTextPrimary,
+    return FormField<String>(
+      key: _timeFormKey,
+      initialValue: widget.timeController.text,
+      validator: ValidatorUtil.instance.validateTime,
+      builder: (formFieldState) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: widget.onTimeTap,
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: CustomAppColors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: formFieldState.hasError
+                          ? Colors.red
+                          : CustomAppColors.formBorder,
+                      width: 1,
                     ),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.sm,
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.schedule_outlined,
+                        color: CustomAppColors.toggleSelectedGold,
+                        size: 22,
+                      ),
+                      const HorizontalSpace(AppSpacing.md),
+                      Expanded(
+                        child: ValueListenableBuilder<TextEditingValue>(
+                          valueListenable: widget.timeController,
+                          builder: (_, value, __) {
+                            return Text(
+                              value.text.isEmpty ? 'Select time' : value.text,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: value.text.isEmpty
+                                    ? CustomAppColors.formTextHint
+                                    : CustomAppColors.formTextPrimary,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      Icon(
+                        Icons.chevron_right,
+                        color: CustomAppColors.formTextHint,
+                        size: 22,
+                      ),
+                    ],
                   ),
                 ),
               ),
-              Icon(
-                Icons.chevron_right,
-                color: CustomAppColors.formTextHint,
-                size: 22,
+            ),
+            if (formFieldState.hasError)
+              Padding(
+                padding: const EdgeInsets.only(left: 12, top: 6),
+                child: Text(
+                  formFieldState.errorText ?? '',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: Colors.red,
+                    fontSize: 12,
+                  ),
+                ),
               ),
-            ],
-          ),
-        ),
-      ),
+          ],
+        );
+      },
     );
   }
 
@@ -276,6 +358,7 @@ class _PickupAndDropoffWidgetState extends State<PickupAndDropoffWidget> {
           controller: widget.dropOffLocationController,
           fieldType: LocationFieldType.dropoff,
           labelText: 'Location',
+          validator: ValidatorUtil.instance.validateDropOffLocation,
         ),
         const VerticalSpace(AppSpacing.lg),
         BlocBuilder<LocationBloc, LocationState>(
