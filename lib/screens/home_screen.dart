@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:test_repo_example/common/styles/app_colors.dart';
 import 'package:test_repo_example/common/styles/app_spacing.dart';
+import 'package:test_repo_example/common/utils/validator_utils.dart';
 import 'package:test_repo_example/common/widgets/app_outlined_field.dart';
 import 'package:test_repo_example/common/widgets/app_segmented_control.dart';
 import 'package:test_repo_example/common/widgets/section_title.dart';
@@ -13,6 +14,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final _formKey = GlobalKey<FormState>();
   int _tripTypeIndex = 0;
   int _pickupLocationTypeIndex = 0;
   int _dropOffLocationTypeIndex = 0;
@@ -55,27 +57,30 @@ class _HomeScreenState extends State<HomeScreen> {
             horizontal: AppSpacing.xl,
             vertical: AppSpacing.space20,
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const VerticalSpace(AppSpacing.xl),
-              _buildHeader(context),
-              const VerticalSpace(AppSpacing.xl),
-              _buildMainHeading(context),
-              const VerticalSpace(AppSpacing.xl),
-              _buildTripTypeToggle(context),
-              const VerticalSpace(AppSpacing.xl),
-              _buildPickupSection(context),
-              const VerticalSpace(AppSpacing.xl),
-              _buildDropOffSection(context),
-              const VerticalSpace(AppSpacing.xl),
-              _buildContactSection(context),
-              const VerticalSpace(AppSpacing.xl),
-              _buildPassengersSection(context),
-              const VerticalSpace(AppSpacing.xxl),
-              _buildContinueButton(context),
-              const VerticalSpace(AppSpacing.xxxl),
-            ],
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const VerticalSpace(AppSpacing.xl),
+                _buildHeader(context),
+                const VerticalSpace(AppSpacing.xl),
+                _buildMainHeading(context),
+                const VerticalSpace(AppSpacing.xl),
+                _buildTripTypeToggle(context),
+                const VerticalSpace(AppSpacing.xl),
+                _buildPickupSection(context),
+                const VerticalSpace(AppSpacing.xl),
+                _buildDropOffSection(context),
+                const VerticalSpace(AppSpacing.xl),
+                _buildContactSection(context),
+                const VerticalSpace(AppSpacing.xl),
+                _buildPassengersSection(context),
+                const VerticalSpace(AppSpacing.xxl),
+                _buildContinueButton(context),
+                const VerticalSpace(AppSpacing.xxxl),
+              ],
+            ),
           ),
         ),
       ),
@@ -110,15 +115,13 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildMainHeading(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Center(
-      child: Text(
-        "Let's get you on your way!",
-        style: theme.textTheme.headlineMedium?.copyWith(
-          color: CustomAppColors.formTextPrimary,
-          fontWeight: FontWeight.w600,
-        ),
-        textAlign: TextAlign.center,
+    return Text(
+      "Let's get you on your way!",
+      style: theme.textTheme.headlineMedium?.copyWith(
+        color: CustomAppColors.formTextPrimary,
+        fontWeight: FontWeight.w300,
       ),
+      textAlign: TextAlign.left,
     );
   }
 
@@ -178,9 +181,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         child: Text(
                           _dateController.text,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: CustomAppColors.formTextPrimary,
-                          ),
+                          style: theme.textTheme.bodyMedium,
                         ),
                       ),
                     ),
@@ -214,9 +215,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     const HorizontalSpace(AppSpacing.md),
                     Text(
                       _timeController.text,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: CustomAppColors.formTextPrimary,
-                      ),
+                      style: theme.textTheme.bodyMedium,
                     ),
                   ],
                 ),
@@ -296,12 +295,12 @@ class _HomeScreenState extends State<HomeScreen> {
         const VerticalSpace(AppSpacing.lg),
         AppOutlinedField(
           controller: _phoneController,
-          leadingIcon: Icon(
-            Icons.flag,
-            color: CustomAppColors.formTextHint,
-            size: 20,
+          validator: ValidatorUtil.instance.validatePhone,
+          leadingIcon: Image.asset(
+            'assets/icons/united-states.png',
+            width: 8,
+            height: 8,
           ),
-          height: 56,
         ),
         const VerticalSpace(AppSpacing.sm),
         Text(
@@ -312,15 +311,14 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         const VerticalSpace(AppSpacing.lg),
         Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
               child: AppOutlinedField(
                 controller: _firstNameController,
-                hintText: 'First name',
-                leadingIcon: Icon(
-                  Icons.person,
-                  color: CustomAppColors.formTextHint,
-                ),
+                labelText: 'First name',
+                leadingIcon: Icon(Icons.person, color: CustomAppColors.primary),
+                validator: ValidatorUtil.instance.validateFirstName,
                 height: 56,
               ),
             ),
@@ -328,11 +326,9 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(
               child: AppOutlinedField(
                 controller: _lastNameController,
-                hintText: 'Last name',
-                leadingIcon: Icon(
-                  Icons.person,
-                  color: CustomAppColors.formTextHint,
-                ),
+                labelText: 'Last name',
+                leadingIcon: Icon(Icons.person, color: CustomAppColors.primary),
+                validator: ValidatorUtil.instance.validateLastName,
                 height: 56,
               ),
             ),
@@ -341,9 +337,10 @@ class _HomeScreenState extends State<HomeScreen> {
         const VerticalSpace(AppSpacing.lg),
         AppOutlinedField(
           controller: _emailController,
-          hintText: 'name@example.com',
-          leadingIcon: Icon(Icons.mail, color: CustomAppColors.formTextHint),
+          labelText: 'name@example.com',
+          leadingIcon: Icon(Icons.mail, color: CustomAppColors.primary),
           keyboardType: TextInputType.emailAddress,
+          validator: ValidatorUtil.instance.validateEmail,
           height: 56,
         ),
       ],
@@ -359,7 +356,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Text(
           'How many passengers are expected for the trip?',
           style: theme.textTheme.bodyMedium?.copyWith(
-            color: CustomAppColors.formTextPrimary,
+            color: CustomAppColors.primary,
           ),
         ),
         const VerticalSpace(AppSpacing.md),
@@ -367,11 +364,9 @@ class _HomeScreenState extends State<HomeScreen> {
           width: 150,
           child: AppOutlinedField(
             controller: _passengersController,
-            hintText: 'Passengers',
-            leadingIcon: Icon(
-              Icons.numbers,
-              color: CustomAppColors.formTextHint,
-            ),
+            labelText: 'Passengers',
+            leadingIcon: Icon(Icons.numbers, color: CustomAppColors.primary),
+            validator: ValidatorUtil.instance.validatePassengers,
             height: 56,
           ),
         ),
@@ -384,7 +379,13 @@ class _HomeScreenState extends State<HomeScreen> {
       width: double.infinity,
       height: 56,
       child: ElevatedButton(
-        onPressed: () {},
+        onPressed: () {
+          if (_formKey.currentState!.validate()) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text('Form is valid!')));
+          }
+        },
         style: ElevatedButton.styleFrom(
           backgroundColor: CustomAppColors.toggleSelectedGold,
           foregroundColor: CustomAppColors.white,
