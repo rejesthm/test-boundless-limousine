@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:test_repo_example/common/styles/app_colors.dart';
 import 'package:test_repo_example/common/styles/app_spacing.dart';
 
@@ -18,6 +19,7 @@ class AppOutlinedField extends StatelessWidget {
     this.height = 56,
     this.keyboardType,
     this.validator,
+    this.inputFormatters,
   });
 
   final TextEditingController? controller;
@@ -34,6 +36,7 @@ class AppOutlinedField extends StatelessWidget {
   final double height;
   final TextInputType? keyboardType;
   final String? Function(String?)? validator;
+  final List<TextInputFormatter>? inputFormatters;
 
   @override
   Widget build(BuildContext context) {
@@ -59,6 +62,7 @@ class AppOutlinedField extends StatelessWidget {
                 readOnly: readOnly,
                 onTap: onTap,
                 keyboardType: keyboardType,
+                inputFormatters: inputFormatters,
                 onChanged: (value) => field.didChange(value),
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: CustomAppColors.formTextPrimary,

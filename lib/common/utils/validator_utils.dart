@@ -11,7 +11,6 @@ class ValidatorUtil {
 
     final cleaned = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
 
-    // Check for US country code patterns
     if (cleaned.startsWith('+1')) {
       return _hasValidUSAreaCode(cleaned.substring(2));
     } else if (cleaned.startsWith('001')) {
@@ -19,7 +18,6 @@ class ValidatorUtil {
     } else if (cleaned.startsWith('1') && cleaned.length == 11) {
       return _hasValidUSAreaCode(cleaned.substring(1));
     } else if (cleaned.length == 10) {
-      // Assume 10-digit numbers without country code are US numbers
       return _hasValidUSAreaCode(cleaned);
     }
 
@@ -30,7 +28,6 @@ class ValidatorUtil {
     if (number.length < 10) return false;
 
     final areaCode = number.substring(0, 3);
-    // US area codes start with 2-9
     final firstDigit = int.tryParse(areaCode[0]) ?? 0;
     return firstDigit >= 2 && firstDigit <= 9;
   }
@@ -65,7 +62,6 @@ class ValidatorUtil {
     return phoneNumber;
   }
 
-  /// Validates if the given string is a valid email address
   bool isValidEmail(String email) {
     if (email.isEmpty) return false;
 
@@ -75,7 +71,6 @@ class ValidatorUtil {
     return emailRegex.hasMatch(email.trim());
   }
 
-  /// Returns an error message if email is invalid, null if valid
   String? validateEmail(String? email) {
     if (email == null || email.isEmpty) {
       return 'Email is required';
@@ -86,7 +81,6 @@ class ValidatorUtil {
     return null;
   }
 
-  /// Validates that a field is not empty
   String? validateRequired(String? value, [String fieldName = 'This field']) {
     if (value == null || value.trim().isEmpty) {
       return '$fieldName is required';
@@ -94,17 +88,14 @@ class ValidatorUtil {
     return null;
   }
 
-  /// Validates first name
   String? validateFirstName(String? value) {
     return validateRequired(value, 'First name');
   }
 
-  /// Validates last name
   String? validateLastName(String? value) {
     return validateRequired(value, 'Last name');
   }
 
-  /// Validates phone number
   String? validatePhone(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'Phone number is required';
@@ -115,7 +106,6 @@ class ValidatorUtil {
     return null;
   }
 
-  /// Validates passengers count
   String? validatePassengers(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'Number of passengers is required';
